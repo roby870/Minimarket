@@ -34,7 +34,6 @@ get  '/items.json' do
 end
 
 post  '/items.json' do 
-	
 	data = JSON.parse request.body.read 
 										
 	db.transaction do |db_in_transaction|
@@ -42,16 +41,21 @@ post  '/items.json' do
 	   	db_in_transaction.prepare("INSERT INTO items(sku, description, stock, price) VALUES( :sku, :description, :stock, :price );") do |stmt|
 
 		    insert_data = {}
-		    insert_data[':sku']    = data['sku']  #validar el sku seria comprobar que no existe uno igual almacenado
-		    insert_data[':description'] = data['description']
-		    insert_data[':stock']  = data['stock']
-		    insert_data[':price']    = data['price']
+		    raise if (insert_data[':sku']    = data['sku']).nil?  #validar el sku seria comprobar que no existe uno igual almacenado
+		    raise if (insert_data[':description'] = data['description']).nil? 
+		    raise if (insert_data[':stock']  = data['stock']).nil? 
+		    raise if (insert_data[':price']    = data['price']).nil? 
 		    stmt.execute( insert_data )
 
 	 	end
 	
-	end
+	end	
 	status 201
+	rescue JSON::ParserError
+		body "La API solamente acepta datos en formato JSON\n"
+		status 415
+	rescue
+		status 422
 end
 
 error 500 do #manejando los errores de esta forma evito que al cliente le llegue la pila del error en caso de un error del servidor
