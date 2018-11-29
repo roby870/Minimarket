@@ -1,0 +1,28 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amalgalite (1.5.0)
+      arrayfields (~> 4.9)
+    arrayfields (4.9.2)
+    json (2.1.0)
+    mustermann (1.0.3)
+    rack (2.0.6)
+    rack-protection (2.0.4)
+      rack
+    sinatra (2.0.4)
+      mustermann (~> 1.0)
+      rack (~> 2.0)
+      rack-protection (= 2.0.4)
+      tilt (~> 2.0)
+    tilt (2.0.9)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  amalgalite (= 1.5.0)
+  json
+  sinatra
+
+BUNDLED WITH
+   1.16.2
