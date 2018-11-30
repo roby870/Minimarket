@@ -22,6 +22,17 @@ class Repository
 		items
 	end	
 
+	def getItem(anId)
+		db = getConnection
+		item = []
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT * FROM items WHERE id = '#{anId}';") do |stmt|
+		    	item = stmt.execute
+	 		end
+		end
+		item
+	end	
+
 	def addItem(data)
 		db = getConnection
 

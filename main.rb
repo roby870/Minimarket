@@ -30,10 +30,15 @@ end
 
 get '/items/:id.json' do
 
-	item = Repository.obtainInstance.getItem(params['id'])
-
-
-
+	result = Repository.obtainInstance.getItem(params['id'])
+	if result.empty?
+		status 404
+	else
+		row = result[0]
+		item={id: row[0], sku: row[1], description: row[2], stock: row[3], price: row[4]}
+		body "#{JSON.pretty_generate(item)}\n"  
+		status 200
+	end
 
 end	
 
