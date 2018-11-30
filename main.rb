@@ -15,7 +15,7 @@ end
 get  '/items.json' do 
 
 	items = Repository.obtainInstance.getItems
-	#como el metodo de Amalgalite devuelve un arreglo de arreglos, necesitamos armar hashes con la clave de cada valor
+	#como el modelo devuelve un arreglo de arreglos, necesitamos armar hashes con la clave de cada valor
 	#antes de pasar el resultado de la consulta al formato JSON
 	itemList = []
 	items.each do |row|
@@ -28,22 +28,8 @@ get  '/items.json' do
 end
 
 post  '/items.json' do 
-	data = JSON.parse request.body.read 
-										
-	db.transaction do |db_in_transaction|
-	   	
-	   	db_in_transaction.prepare("INSERT INTO items(sku, description, stock, price) VALUES( :sku, :description, :stock, :price );") do |stmt|
-
-		    insert_data = {}
-		    raise if (insert_data[':sku']    = data['sku']).nil?  #validar el sku seria comprobar que no existe uno igual almacenado
-		    raise if (insert_data[':description'] = data['description']).nil? 
-		    raise if (insert_data[':stock']  = data['stock']).nil? 
-		    raise if (insert_data[':price']    = data['price']).nil? 
-		    stmt.execute( insert_data )
-
-	 	end
-	
-	end	
+	data = JSON.parse request.body.read 			
+	Repository.obtainInstance.addItem(data)
 	status 201
 	rescue JSON::ParserError
 		error = {Error: "La API solamente acepta datos en formato JSON"}
