@@ -52,9 +52,12 @@ post  '/items.json' do
 	end	
 	status 201
 	rescue JSON::ParserError
-		body "La API solamente acepta datos en formato JSON\n"
+		error = {Error: "La API solamente acepta datos en formato JSON"}
+		body "#{JSON.pretty_generate(error)}\n"
 		status 415
 	rescue
+		error = {Error: "La API solamente crea un nuevo item si recibe todos los parametros: sku, descripcion, stock y precio"}
+		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 end
 
