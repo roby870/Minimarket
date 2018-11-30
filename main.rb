@@ -28,17 +28,28 @@ get  '/items.json' do
 end
 
 post  '/items.json' do 
-	data = JSON.parse request.body.read 			
-	Repository.obtainInstance.addItem(data)
+	data = JSON.parse request.body.read
+	insert_data = {}
+	raise ArgumentError if (insert_data[':sku']    = data['sku']).nil?  #validar el sku seria comprobar que no existe uno igual almacenado
+	raise unless Repository.obtainInstance.checkSku(insert_data[':sku'])
+	raise ArgumentError if (insert_data[':description'] = data['description']).nil? 
+	raise ArgumentError if (insert_data[':stock']  = data['stock']).nil? 
+	raise ArgumentError if (insert_data[':price']    = data['price']).nil?  			
+	Repository.obtainInstance.addItem(insert_data)
 	status 201
 	rescue JSON::ParserError
 		error = {Error: "La API solamente acepta datos en formato JSON"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 415
-	rescue
+	rescue ArgumentError
 		error = {Error: "La API solamente crea un nuevo item si recibe todos los parametros: sku, descripcion, stock y precio"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
+	rescue
+		error = {Error: "El sku del item enviado ya existe"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 409
+
 end
 
 error 500 do #manejando los errores de esta forma evito que al cliente le llegue la pila del error en caso de un error del servidor

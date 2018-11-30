@@ -24,21 +24,34 @@ class Repository
 
 	def addItem(data)
 		db = getConnection
+
 		db.transaction do |db_in_transaction|
-		   	
+
 		   	db_in_transaction.prepare("INSERT INTO items(sku, description, stock, price) VALUES( :sku, :description, :stock, :price );") do |stmt|
 
-			    insert_data = {}
-			    raise if (insert_data[':sku']    = data['sku']).nil?  #validar el sku seria comprobar que no existe uno igual almacenado
-			    raise if (insert_data[':description'] = data['description']).nil? 
-			    raise if (insert_data[':stock']  = data['stock']).nil? 
-			    raise if (insert_data[':price']    = data['price']).nil? 
-			    stmt.execute( insert_data )
+			    stmt.execute(data)
 
 		 	end
 		
 		end	
-		
+
 	end
+
+	def checkSku(aSku)
+		db = getConnection
+		result = []
+		db.transaction do |db_in_transaction|
+
+		   	db_in_transaction.prepare("SELECT sku FROM items WHERE sku = #{aSku};") do |stmt|
+
+			    result = stmt.execute
+
+		 	end
+		
+		end	
+
+		result.empty?
+	
+	end	
 
 end
