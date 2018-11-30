@@ -1,6 +1,6 @@
 #ejecutar con bundle exec (ponerlo en readme). No subir al repo la DB, solamente este archivo de configuracion
-require 'Amalgalite'
 
+Bundler.require(:repository)
 db = Amalgalite::Database.new("Minimarket.db")
 
 db.execute <<-SQL

@@ -1,11 +1,10 @@
 #modularizar en distintos archivos la parte del modelo, o sea las consultas y la conexion a la base
 #las validaciones hacerlas con params. No asumir que se recibe json, la decodificacion la hace sinatra
 #con validar se refieren a chequear que estan todos los parametros, no a si son del tipo de dato correspondiente 
-Bundler.require 
+Bundler.require(:app)
+require_relative 'model/repository'
 
 set :show_exceptions, :after_handler
-
-db = Amalgalite::Database.new("Minimarket.db") #retorna la base o la crea si no existe
 
 before do 
 	content_type "application/json"
@@ -15,12 +14,7 @@ end
 
 get  '/items.json' do 
 
-	items = []
-	db.transaction do |db_in_transaction|
-	   	db_in_transaction.prepare("SELECT id, sku, description FROM items;") do |stmt|
-		    items = stmt.execute
-	 	end
-	end
+	items = Repository.obtainInstance.getItems
 	#como el metodo de Amalgalite devuelve un arreglo de arreglos, necesitamos armar hashes con la clave de cada valor
 	#antes de pasar el resultado de la consulta al formato JSON
 	itemList = []
