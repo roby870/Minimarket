@@ -42,7 +42,7 @@ class Repository
 		result = []
 		db.transaction do |db_in_transaction|
 
-		   	db_in_transaction.prepare("SELECT sku FROM items WHERE sku = #{aSku};") do |stmt|
+		   	db_in_transaction.prepare("SELECT sku FROM items WHERE sku = '#{aSku}';") do |stmt|
 
 			    result = stmt.execute
 
