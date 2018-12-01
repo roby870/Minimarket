@@ -72,10 +72,12 @@ class Repository
 		db.transaction do |db_in_transaction|
 
 		   	db_in_transaction.prepare("UPDATE items SET  #{(update_data.collect do |key, value|
-		   		"#{key} = '#{value}' "
+		   		
+			   		"#{key} = '#{value}' "
 
-		   		end).join(',')
-		   		}  WHERE id = '#{anId}';") do |stmt|
+			   		end).join(',')}  
+
+		   		WHERE id = '#{anId}';") do |stmt|
 
 			    stmt.execute
 
@@ -84,6 +86,49 @@ class Repository
 		end	
 
 	end	
+
+	def userShoppingCart(aUsername)
+		db = getConnection
+		shoppingCart = []
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT created FROM shopping_carts WHERE username = '#{aUsername}';") do |stmt|
+		    	shoppingCart = stmt.execute
+	 		end
+		end
+		shoppingCart
+	end
+
+	def createShoppingCart(aUsername)
+		db = getConnection
+		data = {}
+		data[':username'] = aUsername
+		db.transaction do |db_in_transaction|
+
+		   	db_in_transaction.prepare("INSERT INTO shopping_carts(username, created) VALUES( :username, CURRENT_DATE);") do |stmt|
+
+			    stmt.execute(data)
+
+		 	end
+		
+		end	
+
+		userShoppingCart aUsername
+
+	end
+
+	def itemsShoppingCart(aUsername)
+		db = getConnection
+		items = []
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT i.description, SUM(i.price) FROM shopping_carts sc 
+	   												  INNER JOIN shopping_cart_has_item sci ON sc.id = sci.shopping_cart
+	   												  INNER JOIN items i ON i.id = sci.item	
+	   									WHERE username = '#{aUsername}';") do |stmt|
+		    	items = stmt.execute
+	 		end
+		end
+		items
+	end
 
 
 end

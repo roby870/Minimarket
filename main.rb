@@ -73,12 +73,12 @@ end
 
 put '/items/:id.json' do 
 
-	data = JSON.parse request.body.read
 	id = params['id'] 
 	result = Repository.obtainInstance.getItem(id)
 	if result.empty?
 		status 404
 	else
+		data = JSON.parse request.body.read
 		update_data = {}
 		
 		update_data[:sku] = data['sku'] unless data['sku'].nil?
@@ -103,6 +103,29 @@ put '/items/:id.json' do
 		error = {Error: "El sku enviado ya se encuentra registrado"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 409
+end
+
+get '/cart/:username.json' do
+
+	shoppingCart = Repository.obtainInstance.userShoppingCart(params['username'])
+	if shoppingCart.empty?
+		shoppingCart = Repository.obtainInstance.createShoppingCart(params['username'])
+		newCart={Carrito: "Creado exitosamente", Fecha_de_creacion: shoppingCart[0][0].to_s, Usuario: params['username']}
+		body "#{JSON.pretty_generate(newCart)}\n"
+		status 201
+	else
+		items = Repository.obtainInstance.itemsShoppingCart(params['username'])
+		itemList = []
+		itemList.push({Fecha_de_creacion: shoppingCart[0][0].to_s})
+		itemList.push({Total: items[0][1]})
+		items.each do |row|
+			item={item: row[0]}
+			itemList.push(item)
+		end
+		body "#{JSON.pretty_generate(itemList)}\n"
+		status 200
+	end
+
 end
 
 
