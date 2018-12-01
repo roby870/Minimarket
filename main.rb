@@ -74,18 +74,23 @@ end
 put '/items/:id.json' do 
 
 	data = JSON.parse request.body.read
-
-	update_data = {}
 	id = params['id'] 
-	update_data[:sku] = data['sku'] unless data['sku'].nil?
-	raise ValidationErrors::ExistingSkuError unless Repository.obtainInstance.checkSku(update_data[:sku]) #no puede haber en la base atributos sku en null asi que en el caso de que update_data[:sku] sea nil no va a encontrar ningun item con sku seteado en null 
-	update_data[:description] = data['description'] unless data['description'].nil?
-	update_data[:stock] = data['stock']  unless data['stock'].nil?
-	update_data[:price] = data['price']  unless data['price'].nil?
-	raise ValidationErrors::RequiredFieldError if update_data.empty?
+	result = Repository.obtainInstance.getItem(id)
+	if result.empty?
+		status 404
+	else
+		update_data = {}
+		
+		update_data[:sku] = data['sku'] unless data['sku'].nil?
+		raise ValidationErrors::ExistingSkuError unless Repository.obtainInstance.checkSku(update_data[:sku]) #no puede haber en la base atributos sku en null asi que en el caso de que update_data[:sku] sea nil no va a encontrar ningun item con sku seteado en null 
+		update_data[:description] = data['description'] unless data['description'].nil?
+		update_data[:stock] = data['stock']  unless data['stock'].nil?
+		update_data[:price] = data['price']  unless data['price'].nil?
+		raise ValidationErrors::RequiredFieldError if update_data.empty?
 
-	Repository.obtainInstance.modifyItem(id, update_data)
-
+		Repository.obtainInstance.modifyItem(id, update_data)
+		status 200
+	end
 	rescue JSON::ParserError
 		error = {Error: "La API solamente acepta datos en formato JSON"}
 		body "#{JSON.pretty_generate(error)}\n"
