@@ -65,4 +65,25 @@ class Repository
 	
 	end	
 
+	def modifyItem(anId, update_data)
+
+		db = getConnection
+		
+		db.transaction do |db_in_transaction|
+
+		   	db_in_transaction.prepare("UPDATE items SET  #{(update_data.collect do |key, value|
+		   		"#{key} = '#{value}' "
+
+		   		end).join(',')
+		   		}  WHERE id = '#{anId}';") do |stmt|
+
+			    stmt.execute
+
+		 	end
+		
+		end	
+
+	end	
+
+
 end

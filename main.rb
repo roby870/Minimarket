@@ -1,6 +1,3 @@
-#modularizar en distintos archivos la parte del modelo, o sea las consultas y la conexion a la base
-#las validaciones hacerlas con params. No asumir que se recibe json, la decodificacion la hace sinatra
-#con validar se refieren a chequear que estan todos los parametros, no a si son del tipo de dato correspondiente 
 Bundler.require(:app)
 require_relative 'model/repository'
 require_relative 'ValidationErrors.rb'
@@ -10,7 +7,6 @@ set :show_exceptions, :after_handler
 before do 
 	content_type "application/json"
 end
-
 
 
 get  '/items.json' do 
@@ -28,6 +24,7 @@ get  '/items.json' do
 
 end
 
+
 get '/items/:id.json' do
 
 	result = Repository.obtainInstance.getItem(params['id'])
@@ -43,8 +40,8 @@ get '/items/:id.json' do
 end	
 
 
-
 post  '/items.json' do 
+	
 	data = JSON.parse request.body.read
 
 	#validaciones y preparacion de los datos para pasarselos al modelo
@@ -72,6 +69,37 @@ post  '/items.json' do
 		status 409
 
 end
+
+
+put '/items/:id.json' do 
+
+	data = JSON.parse request.body.read
+
+	update_data = {}
+	id = params['id'] 
+	update_data[:sku] = data['sku'] unless data['sku'].nil?
+	raise ValidationErrors::ExistingSkuError unless Repository.obtainInstance.checkSku(update_data[:sku]) #no puede haber en la base atributos sku en null asi que en el caso de que update_data[:sku] sea nil no va a encontrar ningun item con sku seteado en null 
+	update_data[:description] = data['description'] unless data['description'].nil?
+	update_data[:stock] = data['stock']  unless data['stock'].nil?
+	update_data[:price] = data['price']  unless data['price'].nil?
+	raise ValidationErrors::RequiredFieldError if update_data.empty?
+
+	Repository.obtainInstance.modifyItem(id, update_data)
+
+	rescue JSON::ParserError
+		error = {Error: "La API solamente acepta datos en formato JSON"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 415
+	rescue ValidationErrors::RequiredFieldError
+		error = {Error: "Se necesita al menos un parametro en el cuerpo de la peticion (sku, descripcion, stock o precio) para poder modificar un item"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 422
+	rescue ValidationErrors::ExistingSkuError
+		error = {Error: "El sku enviado ya se encuentra registrado"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 409
+end
+
 
 error 500 do #manejando los errores de esta forma evito que al cliente le llegue la pila del error en caso de un error del servidor
 	status 500 
