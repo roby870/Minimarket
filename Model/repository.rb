@@ -138,7 +138,9 @@ class Repository
 			    result = stmt.execute
 		 	end
 		end	
-		if result[0][0] >= aCant
+		if result[0].nil?
+			nil
+		elsif result[0][0] >= aCant
 			true
 		else
 			false

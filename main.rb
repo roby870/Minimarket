@@ -158,11 +158,12 @@ put '/cart/:username.json' do
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 	rescue ValidationErrors::CantLessThanOneError	
-		error = {Error: "La cantidad de items a agregar debe ser al menos 1"}
+		error = {Error: "La cantidad de items a agregar debe ser al menos 1"} 
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 	rescue ValidationErrors::StockError
-		error = {Error: "No se dispone del stock suficiente para satisfacer el pedido"}
+		error = {Error: "No se dispone del stock suficiente para satisfacer el pedido"} if (Repository.obtainInstance.checkStock(data['id'], data['cantidad']) == false)
+		error = {Error: "No existe un item con el id indicado en el pedido"} if (Repository.obtainInstance.checkStock(data['id'], data['cantidad']) == nil)		
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 end

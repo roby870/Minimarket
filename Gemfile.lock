@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    amalgalite (1.5.0)
+    amalgalite (1.6.1)
       arrayfields (~> 4.9)
     arrayfields (4.9.2)
     json (2.1.0)
@@ -20,7 +20,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  amalgalite (~> 1.5.0)
+  amalgalite (>= 1.5.0)
   json (= 2.1.0)
   sinatra (= 2.0.4)
 
