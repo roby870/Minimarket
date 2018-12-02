@@ -148,7 +148,7 @@ put '/cart/:username.json' do
 	update_data[':shoppingCart'] = shoppingCart[0][1]
 	Repository.obtainInstance.addItemToShoppingCart(update_data)
 	status 200
-	
+
 	rescue JSON::ParserError
 		error = {Error: "La API solamente acepta datos en formato JSON"}
 		body "#{JSON.pretty_generate(error)}\n"
@@ -167,6 +167,23 @@ put '/cart/:username.json' do
 		status 422
 end
 
+delete '/cart/:username/:item_id.json' do
+	shoppingCart = Repository.obtainInstance.userShoppingCart(params['username'])
+	if shoppingCart.empty?
+		Repository.obtainInstance.createShoppingCart(params['username']) 
+		status 201
+	else
+		raise ValidationErrors::ItemNotInCartError unless Repository.obtainInstance.itemInShoppingCart(params['username'], params['item_id'])
+		shoppingCartId = shoppingCart[0][1]
+		Repository.obtainInstance.deleteItem(shoppingCartId, params['item_id'])	
+		status 200
+	end
+	rescue ValidationErrors::ItemNotInCartError
+		error = {Error: "No se encuentra en el carrito el item que intenta borrar"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 422
+
+end
 
 error 500 do #manejando los errores de esta forma evito que al cliente le llegue la pila del error en caso de un error del servidor
 	status 500 

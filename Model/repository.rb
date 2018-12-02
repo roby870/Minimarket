@@ -192,4 +192,53 @@ class Repository
 	
 	end
 
+
+	def itemInShoppingCart(aUsername, anItem)
+		db = getConnection
+		item = []
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT sci.item FROM shopping_cart_has_item sci
+	   									INNER JOIN shopping_carts sc on sci.shopping_cart = sc.id
+	   									WHERE sc.username = '#{aUsername}' AND sci.item = '#{anItem}';") do |stmt|
+		    	item = stmt.execute
+	 		end
+		end
+		if item.empty?
+			false
+		else
+			true
+		end	
+	end	
+
+	def deleteItem(aShoppingCartId, anItemId)
+		db = getConnection
+		numOfItems = 0
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT cant FROM shopping_cart_has_item 
+	   									WHERE shopping_cart = '#{aShoppingCartId}' AND item = '#{anItemId}';") do |stmt|
+		    	numOfItems = stmt.execute
+	 		end
+		end
+		if numOfItems[0][0] == 1
+			db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("DELETE FROM shopping_cart_has_item 
+	   									WHERE shopping_cart = '#{aShoppingCartId}' AND item = '#{anItemId}';") do |stmt|
+		    	stmt.execute
+	 		end
+		end
+		else
+			db.transaction do |db_in_transaction|
+
+			   	db_in_transaction.prepare("UPDATE shopping_cart_has_item 
+			   								SET  cant = cant - 1
+			   								WHERE  shopping_cart = '#{aShoppingCartId}' AND item = '#{anItemId}';") do |stmt|
+
+				    							stmt.execute
+
+										 	end		
+			end	
+
+		end
+	end	
+
 end

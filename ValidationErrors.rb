@@ -16,4 +16,8 @@ class StockError < ArgumentError
 	
 end
 
+class ItemNotInCartError < StandardError
+
+end
+
 end
