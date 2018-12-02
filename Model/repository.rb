@@ -145,7 +145,7 @@ class Repository
 		end
 	end
 
-	def addItemToShoppingCart(update_data) #falta restarle la cantidad al stock
+	def addItemToShoppingCart(update_data) 
 		db = getConnection
 		
 		db.transaction do |db_in_transaction|

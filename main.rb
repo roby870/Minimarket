@@ -60,7 +60,7 @@ post  '/items.json' do
 		body "#{JSON.pretty_generate(error)}\n"
 		status 415
 	rescue ValidationErrors::RequiredFieldError
-		error = {Error: "La API solamente crea un nuevo item si recibe todos los parametros: sku, descripcion, stock y precio"}
+		error = {Error: "La API solamente crea un nuevo item si recibe todos los parametros: sku, description, stock y price (enviar en ingles el nombre del campo y el contenido en cualquier idioma)"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 	rescue ValidationErrors::ExistingSkuError
@@ -96,7 +96,7 @@ put '/items/:id.json' do
 		body "#{JSON.pretty_generate(error)}\n"
 		status 415
 	rescue ValidationErrors::RequiredFieldError
-		error = {Error: "Se necesita al menos un parametro en el cuerpo de la peticion (sku, descripcion, stock o precio) para poder modificar un item"}
+		error = {Error: "Se necesita al menos un parametro en el cuerpo de la peticion (sku, description, stock o price) para poder modificar un item (enviar en ingles el nombre del campo y el contenido en cualquier idioma)"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 	rescue ValidationErrors::ExistingSkuError
@@ -132,7 +132,7 @@ end
 
 
 put '/cart/:username.json' do
-	#controlar si hay stock suficiente para satisfacer el pedido
+ 
 	data = JSON.parse request.body.read
 
 	raise ValidationErrors::RequiredFieldError if data['id'].nil?
@@ -179,7 +179,7 @@ delete '/cart/:username/:item_id.json' do
 		status 200
 	end
 	rescue ValidationErrors::ItemNotInCartError
-		error = {Error: "No se encuentra en el carrito el item que intenta borrar"}
+		error = {Error: "El item que intenta borrar no se encuentra en el carrito"}
 		body "#{JSON.pretty_generate(error)}\n"
 		status 422
 

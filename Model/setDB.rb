@@ -1,5 +1,3 @@
-#ejecutar con bundle exec (ponerlo en readme). No subir al repo la DB, solamente este archivo de configuracion
-#al ejecutar este archivo crea la base, la tabla y se guarda en el mismo directorio que este archivo 
 Bundler.require(:repository)
 db = Amalgalite::Database.new("Minimarket.db")
 
