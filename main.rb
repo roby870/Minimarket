@@ -1,5 +1,5 @@
 Bundler.require(:app)
-require_relative 'model/repository'
+require_relative 'Model/repository.rb'
 require_relative 'ValidationErrors.rb'
 
 set :show_exceptions, :after_handler
