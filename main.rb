@@ -144,11 +144,16 @@ put '/cart/:username.json' do
 	update_data[':id'] = data['id']
 	update_data[':cantidad'] = data['cantidad'].to_i #por si mandan un float
 	shoppingCart = Repository.obtainInstance.userShoppingCart(params['username'])
-	shoppingCart = Repository.obtainInstance.createShoppingCart(params['username']) if shoppingCart.empty?
-	update_data[':shoppingCart'] = shoppingCart[0][1]
-	Repository.obtainInstance.addItemToShoppingCart(update_data)
-	status 200
-
+	if shoppingCart.empty?
+		shoppingCart = Repository.obtainInstance.createShoppingCart(params['username']) 
+		update_data[':shoppingCart'] = shoppingCart[0][1]
+		Repository.obtainInstance.addItemToShoppingCart(update_data)
+		status 201
+	else
+		update_data[':shoppingCart'] = shoppingCart[0][1]
+		Repository.obtainInstance.addItemToShoppingCart(update_data)
+		status 200
+	end
 	rescue JSON::ParserError
 		error = {Error: "La API solamente acepta datos en formato JSON"}
 		body "#{JSON.pretty_generate(error)}\n"
