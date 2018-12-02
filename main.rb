@@ -105,6 +105,7 @@ put '/items/:id.json' do
 		status 409
 end
 
+
 get '/cart/:username.json' do
 
 	shoppingCart = Repository.obtainInstance.userShoppingCart(params['username'])
@@ -115,17 +116,55 @@ get '/cart/:username.json' do
 		status 201
 	else
 		items = Repository.obtainInstance.itemsShoppingCart(params['username'])
-		itemList = []
-		itemList.push({Fecha_de_creacion: shoppingCart[0][0].to_s})
-		itemList.push({Total: items[0][1]})
+		cart = []
+		cart.push({Fecha_de_creacion: shoppingCart[0][0].to_s})
 		items.each do |row|
-			item={item: row[0]}
-			itemList.push(item)
+			item={item: row[0], cantidad: row[2]}
+			cart.push(item)
 		end
-		body "#{JSON.pretty_generate(itemList)}\n"
+		price_accumulated = items.inject(0) { |mem, row| mem + (row[1] * row [2]) }
+		cart.push({total: price_accumulated})
+		body "#{JSON.pretty_generate(cart)}\n"
 		status 200
 	end
 
+end
+
+
+put '/cart/:username.json' do
+	#controlar si hay stock suficiente para satisfacer el pedido
+	data = JSON.parse request.body.read
+
+	raise ValidationErrors::RequiredFieldError if data['id'].nil?
+	raise ValidationErrors::RequiredFieldError if data['cantidad'].nil?
+	raise ValidationErrors::CantLessThanOneError if data['cantidad'] < 1
+	raise ValidationErrors::StockError unless Repository.obtainInstance.checkStock(data['id'], data['cantidad'])
+
+	update_data = {}
+	update_data[':id'] = data['id']
+	update_data[':cantidad'] = data['cantidad'].to_i #por si mandan un float
+	shoppingCart = Repository.obtainInstance.userShoppingCart(params['username'])
+	shoppingCart = Repository.obtainInstance.createShoppingCart(params['username']) if shoppingCart.empty?
+	update_data[':shoppingCart'] = shoppingCart[0][1]
+	Repository.obtainInstance.addItemToShoppingCart(update_data)
+	status 200
+	
+	rescue JSON::ParserError
+		error = {Error: "La API solamente acepta datos en formato JSON"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 415
+	rescue ValidationErrors::RequiredFieldError
+		error = {Error: "Se necesitan id y cantidad del item en el cuerpo de la peticion para poder agregar uno o mas items al carrito"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 422
+	rescue ValidationErrors::CantLessThanOneError	
+		error = {Error: "La cantidad de items a agregar debe ser al menos 1"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 422
+	rescue ValidationErrors::StockError
+		error = {Error: "No se dispone del stock suficiente para satisfacer el pedido"}
+		body "#{JSON.pretty_generate(error)}\n"
+		status 422
 end
 
 

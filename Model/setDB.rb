@@ -24,6 +24,7 @@ db.execute <<-SQL
   db.execute <<-SQL
   CREATE TABLE shopping_cart_has_item (
     shopping_cart INTEGER(128),
-   	item INTEGER(128)
+   	item INTEGER(128),
+   	cant INTEGER(128)
   );
   SQL

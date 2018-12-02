@@ -91,7 +91,7 @@ class Repository
 		db = getConnection
 		shoppingCart = []
 		db.transaction do |db_in_transaction|
-	   		db_in_transaction.prepare("SELECT created FROM shopping_carts WHERE username = '#{aUsername}';") do |stmt|
+	   		db_in_transaction.prepare("SELECT created, id FROM shopping_carts WHERE username = '#{aUsername}';") do |stmt|
 		    	shoppingCart = stmt.execute
 	 		end
 		end
@@ -120,7 +120,7 @@ class Repository
 		db = getConnection
 		items = []
 		db.transaction do |db_in_transaction|
-	   		db_in_transaction.prepare("SELECT i.description, SUM(i.price) FROM shopping_carts sc 
+	   		db_in_transaction.prepare("SELECT i.description, i.price, sci.cant FROM shopping_carts sc 
 	   												  INNER JOIN shopping_cart_has_item sci ON sc.id = sci.shopping_cart
 	   												  INNER JOIN items i ON i.id = sci.item	
 	   									WHERE username = '#{aUsername}';") do |stmt|
@@ -130,5 +130,66 @@ class Repository
 		items
 	end
 
+	def checkStock (anId, aCant)
+		db = getConnection
+		result = 0
+		db.transaction do |db_in_transaction|
+		   	db_in_transaction.prepare("SELECT stock FROM items WHERE id = '#{anId}';") do |stmt|
+			    result = stmt.execute
+		 	end
+		end	
+		if result[0][0] >= aCant
+			true
+		else
+			false
+		end
+	end
+
+	def addItemToShoppingCart(update_data) #falta restarle la cantidad al stock
+		db = getConnection
+		
+		db.transaction do |db_in_transaction|
+
+			db_in_transaction.prepare("UPDATE items 
+		  							SET  stock = stock - '#{update_data[':cantidad']}'
+			   						WHERE  id = '#{update_data[':id']}';") do |stmt|
+				   						stmt.execute
+		 	end		
+		end	
+
+		item = []
+		db.transaction do |db_in_transaction|
+	   		db_in_transaction.prepare("SELECT * FROM shopping_cart_has_item
+	   									WHERE shopping_cart = '#{update_data[':shoppingCart']}' AND item = '#{update_data[':id']}';") do |stmt|
+		    	item = stmt.execute
+	 		end
+		end
+		if item.empty?
+			db.transaction do |db_in_transaction|
+
+		   	db_in_transaction.prepare("INSERT INTO shopping_cart_has_item(shopping_cart, item, cant) VALUES(:shoppingCart, :id, :cantidad);") do |stmt|
+
+			    stmt.execute(update_data)
+
+		 	end
+		
+		end	
+
+		else
+			db.transaction do |db_in_transaction|
+
+			   	db_in_transaction.prepare("UPDATE shopping_cart_has_item 
+			   								SET  cant = cant + #{update_data[':cantidad']}
+			   								WHERE  shopping_cart = '#{update_data[':shoppingCart']}' AND item = '#{update_data[':id']}';") do |stmt|
+
+				    							stmt.execute
+
+										 	end		
+			end	
+
+
+		end
+	
+	end
 
 end
