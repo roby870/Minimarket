@@ -214,6 +214,17 @@ class Repository
 
 	def deleteItem(aShoppingCartId, anItemId)
 		db = getConnection
+		update_data = {}
+		update_data[':id'] = anItemId
+		db.transaction do |db_in_transaction|
+
+			db_in_transaction.prepare("UPDATE items 
+		  							SET  stock = stock + 1
+			   						WHERE  id = '#{update_data[':id']}';") do |stmt|
+				   						stmt.execute
+		 	end		
+		end
+
 		numOfItems = 0
 		db.transaction do |db_in_transaction|
 	   		db_in_transaction.prepare("SELECT cant FROM shopping_cart_has_item 
